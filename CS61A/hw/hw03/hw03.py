@@ -28,6 +28,14 @@ def num_eights(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n % 10 == 8:
+        return 1 + num_eights(n // 10)
+    elif n > 8:
+        return 0 + num_eights(n // 10)
+    else:
+        return 0
+    
+    
 
 
 def digit_distance(n):
@@ -50,6 +58,10 @@ def digit_distance(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n > 9:
+        return abs((n % 10) - ((n //10) % 10)) + digit_distance(n // 10)
+    else:
+        return 0
 
 
 def interleaved_sum(n, odd_func, even_func):
@@ -72,6 +84,17 @@ def interleaved_sum(n, odd_func, even_func):
     True
     """
     "*** YOUR CODE HERE ***"
+    def mutual_even(k):
+        if k <= n:
+            return even_func(k) + mutual_odd(k + 1) 
+        else:
+            return 0
+    def mutual_odd(k):
+        if k <= n:
+            return odd_func(k) + mutual_even(k + 1)
+        else:
+            return 0
+    return mutual_odd(1)
 
 
 def next_larger_coin(coin):
@@ -126,6 +149,16 @@ def count_coins(total):
     True
     """
     "*** YOUR CODE HERE ***"
+    def helper(t,coin):
+        if t == 0:
+            return 1
+        elif t < 0:
+            return 0
+        elif coin == 1:
+            return 1
+        else:
+            return helper(t - coin,coin) + helper(t,next_smaller_coin(coin))
+    return helper(total,25)
 
 
 def print_move(origin, destination):
