@@ -9,6 +9,15 @@ def hailstone(n):
     1
     """
     "*** YOUR CODE HERE ***"
+    yield n
+    if n % 2 == 0:
+        yield from hailstone(n // 2)
+    elif n != 1:
+        yield from hailstone(n * 3 + 1)
+    else:
+        while True:
+            yield 1
+
 
 
 def merge(a, b):
@@ -24,6 +33,17 @@ def merge(a, b):
     [2, 3, 5, 7, 8, 9, 11, 13, 14, 15]
     """
     "*** YOUR CODE HERE ***"
+    a_val, b_val = next(a), next(b)
+    while True:
+        if a_val == b_val:
+            yield a_val
+            a_val, b_val = next(a), next(b)
+        elif a_val < b_val:
+            yield a_val
+            a_val = next(a)
+        else:
+            yield b_val
+            b_val = next(b)
 
 
 def yield_paths(t, value):
@@ -61,12 +81,44 @@ def yield_paths(t, value):
     [[0, 2], [0, 2, 1, 2]]
     """
     if label(t) == value:
-        yield ____
+        yield [label(t)]
     for b in branches(t):
-        for ____ in ____:
-            yield ____
+        for path in yield_paths(b,value):
+            yield [label(t)] + path
 
+def stair_ways(n):
+    """
+    Yield all the ways to climb a set of n stairs taking
+    1 or 2 steps at a time.
 
+    >>> list(stair_ways(0))
+    [[]]
+    >>> s_w = stair_ways(4)
+    >>> sorted([next(s_w) for _ in range(5)])
+    [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [2, 2]]
+    >>> list(s_w) # Ensure you're not yielding extra
+    []
+    """
+    "*** YOUR CODE HERE ***"
+    def stair_helper(stair_k,path):
+        if stair_k == n:
+            yield path
+            return
+        if stair_k > n:
+            return
+        yield from stair_helper(stair_k + 1,[1] + path)
+        yield from stair_helper(stair_k + 2,[2] + path)
+
+    yield from stair_helper(0,[])
+    if n == 0:
+        yield []
+    if n >= 1:
+        for way in stair_ways(n-1):
+            yield [1] + way
+    if n >= 2:
+        for way in stair_ways(n - 2):
+            yield [2] + way
+    
 
 # Tree Data Abstraction
 

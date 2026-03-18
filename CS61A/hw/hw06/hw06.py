@@ -48,6 +48,67 @@ class VendingMachine:
     'Here is your soda.'
     """
     "*** YOUR CODE HERE ***"
+    def __init__(self, product: str, price: int):
+        """Set the product and its price, as well as other instance attributes."""
+        "*** YOUR CODE HERE ***"
+        self.product = product
+        self.price = price
+        self.stock = 0
+        self.current_funds = 0
+
+    def restock(self, n: int) -> str:
+        """Add n to the stock and return a message about the updated stock level.
+
+        E.g., Current candy stock: 3
+        """
+        "*** YOUR CODE HERE ***"
+        self.stock += n
+        return f'Current {self.product} stock: {self.stock}'
+
+    def add_funds(self, n: int) -> str:
+        """If the machine is out of stock, return a message informing the user to restock
+        (and return their n dollars).
+
+        E.g., Nothing left to vend. Please restock. Here is your $4.
+
+        Otherwise, add n to the balance and return a message about the updated balance.
+
+        E.g., Current balance: $4
+        """
+        "*** YOUR CODE HERE ***"
+        if not self.stock:
+            return f'Nothing left to vend. Please restock. Here is your ${n}.'
+        else:
+            self.current_funds += n
+            return f'Current balance: ${self.current_funds}'
+
+
+    def vend(self) -> str:
+        """Dispense the product if there is sufficient stock and funds and
+        return a message. Update the stock and balance accordingly.
+
+        E.g., Here is your candy and $2 change.
+
+        If not, return a message suggesting how to correct the problem.
+
+        E.g., Nothing left to vend. Please restock.
+              Please add $3 more funds.
+        """
+        "*** YOUR CODE HERE ***"
+        if not self.stock:
+            return 'Nothing left to vend. Please restock.'
+        exchange = self.current_funds % self.price
+        if self.current_funds < self.price:
+            return f'Please add ${self.price - self.current_funds} more funds.'
+        else:
+            if not exchange:
+                self.stock = self.stock - (self.current_funds // self.price)
+                self.current_funds = 0
+                return f'Here is your {self.product}.'
+            else: 
+                self.stock = self.stock - (self.current_funds // self.price)
+                self.current_funds = 0
+                return f'Here is your {self.product} and ${exchange} change.'
 
 
 def store_digits(n):
@@ -68,6 +129,14 @@ def store_digits(n):
     >>> print("Do not use str or reversed!") if any([r in cleaned for r in ["str", "reversed"]]) else None
     """
     "*** YOUR CODE HERE ***"
+    if n < 10:
+        return Link(n)
+    last_store = store_digits(n // 10)
+    rest = last_store
+    while rest.rest is not Link.empty:
+        rest = rest.rest
+    rest.rest = Link(n % 10)
+    return last_store
 
 
 def deep_map_mut(func, lnk):
@@ -90,6 +159,12 @@ def deep_map_mut(func, lnk):
     <9 <16> 25 36>
     """
     "*** YOUR CODE HERE ***"
+    if isinstance(lnk.first,Link):
+        deep_map_mut(func,lnk.first)
+    else:
+        lnk.first = func(lnk.first)
+    if not (lnk.rest is Link.empty):
+        deep_map_mut(func,lnk.rest)       
 
 
 def two_list(vals, counts):
@@ -154,3 +229,94 @@ class Link:
             self = self.rest
         return string + str(self.first) + '>'
 
+def prune_small(t, n):
+    """Prune the tree mutatively, keeping only the n branches
+    of each node with the smallest labels.
+
+    >>> t1 = Tree(6)
+    >>> prune_small(t1, 2)
+    >>> t1
+    Tree(6)
+    >>> t2 = Tree(6, [Tree(3), Tree(4)])
+    >>> prune_small(t2, 1)
+    >>> t2
+    Tree(6, [Tree(3)])
+    >>> t3 = Tree(6, [Tree(1), Tree(3, [Tree(1), Tree(2), Tree(3)]), Tree(5, [Tree(3), Tree(4)])])
+    >>> prune_small(t3, 2)
+    >>> t3
+    Tree(6, [Tree(1), Tree(3, [Tree(1), Tree(2)])])
+    """
+    while len(t.branches) > n:
+        largest = max(t.branches, key=lambda tree : tree.label)
+        t.branches.remove(largest)
+    for b in t.branches:
+        if not b.is_leaf():
+            prune_small(b,n)
+
+def delete(t, x):
+    """Remove all nodes labeled x below the root within Tree t. When a non-leaf
+    node is deleted, the deleted node's children become children of its parent.
+
+    The root node will never be removed.
+
+    >>> t = Tree(3, [Tree(2, [Tree(2), Tree(2)]), Tree(2), Tree(2, [Tree(2, [Tree(2), Tree(2)])])])
+    >>> delete(t, 2)
+    >>> t
+    Tree(3)
+    >>> t = Tree(1, [Tree(2, [Tree(4, [Tree(2)]), Tree(5)]), Tree(3, [Tree(6), Tree(2)]), Tree(4)])
+    >>> delete(t, 2)
+    >>> t
+    Tree(1, [Tree(4), Tree(5), Tree(3, [Tree(6)]), Tree(4)])
+    >>> t = Tree(1, [Tree(2, [Tree(4), Tree(5)]), Tree(3, [Tree(6), Tree(2)]), Tree(2, [Tree(6),  Tree(2), Tree(7), Tree(8)]), Tree(4)])
+    >>> delete(t, 2)
+    >>> t
+    Tree(1, [Tree(4), Tree(5), Tree(3, [Tree(6)]), Tree(6), Tree(7), Tree(8), Tree(4)])
+    """
+    new_branches = []
+    for b in t.branches:
+        delete(b,x)
+        if b.label == x:
+            if not b.is_leaf():
+                for children in b.branches:
+                    new_branches.append(children)
+            t.branches.remove(b)
+        else:
+            new_branches.append(b)
+    t.branches = new_branches
+
+class Tree:
+    """A tree has a label and a list of branches.
+
+    >>> t = Tree(3, [Tree(2, [Tree(5)]), Tree(4)])
+    >>> t.label
+    3
+    >>> t.branches[0].label
+    2
+    >>> t.branches[1].is_leaf()
+    True
+    """
+    def __init__(self, label, branches=[]):
+        self.label = label
+        for branch in branches:
+            assert isinstance(branch, Tree)
+        self.branches = list(branches)
+
+    def is_leaf(self):
+        return not self.branches
+
+    def __repr__(self):
+        if self.branches:
+            branch_str = ', ' + repr(self.branches)
+        else:
+            branch_str = ''
+        return 'Tree({0}{1})'.format(repr(self.label), branch_str)
+
+    def __str__(self):
+        return '\n'.join(self.indented())
+
+    def indented(self):
+        lines = []
+        for b in self.branches:
+            for line in b.indented():
+                lines.append('  ' + line)
+        return [str(self.label)] + lines
