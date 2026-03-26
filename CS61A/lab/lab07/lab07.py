@@ -39,6 +39,15 @@ class Account:
         """Return the number of years until balance would grow to amount."""
         assert self.balance > 0 and amount > 0 and self.interest > 0
         "*** YOUR CODE HERE ***"
+        years = 1
+        current_bal = self.balance
+        while True:
+            current_bal = current_bal * (1+self.interest)
+            if current_bal < amount:
+                years +=1
+            else:
+                break
+        return years
 
 
 class FreeChecking(Account):
@@ -68,6 +77,19 @@ class FreeChecking(Account):
     free_withdrawals = 2
 
     "*** YOUR CODE HERE ***"
+    def withdraw(self, amount):
+        self.draw_fee = 0
+        if self.free_withdrawals:
+            self.free_withdrawals = self.free_withdrawals -1
+        else:
+            self.draw_fee = self.withdraw_fee
+        if amount + self.draw_fee > self.balance:
+                return "Insufficient funds"
+        if amount + self.draw_fee > self.max_withdrawal:
+            return "Can't withdraw that amount"
+        self.balance = self.balance - amount - self.draw_fee
+        return self.balance
+
 
 
 def duplicate_link(s, val):
@@ -87,28 +109,39 @@ def duplicate_link(s, val):
     Link(1, Link(2, Link(2, Link(2, Link(2, Link(3))))))
     """
     "*** YOUR CODE HERE ***"
+    if s is Link.empty:
+        return 
+    duplicate_link(s.rest,val)
+    if s.first == val:
+        if s.rest is Link.empty:
+            s.rest = Link(val,Link.empty)
+        else:
+            s.rest = Link(val,s.rest)
+    else:
+        return
 
 
-class Link:
-    """A linked list.
+def without(s, i: int):
+    """Return a new linked list like s but without the element at index i.
 
-    >>> s = Link(1)
-    >>> s.first
-    1
-    >>> s.rest is Link.empty
-    True
-    >>> s = Link(2, Link(3, Link(4)))
-    >>> s.first = 5
-    >>> s.rest.first = 6
-    >>> s.rest.rest = Link.empty
-    >>> s                                    # Displays the contents of repr(s)
-    Link(5, Link(6))
-    >>> s.rest = Link(7, Link(Link(8, Link(9))))
-    >>> s
-    Link(5, Link(7, Link(Link(8, Link(9)))))
-    >>> print(s)                             # Prints str(s)
-    <5 7 <8 9>>
+    >>> s = Link(3, Link(5, Link(7, Link(9))))
+    >>> without(s, 0)
+    Link(5, Link(7, Link(9)))
+    >>> without(s, 2)
+    Link(3, Link(5, Link(9)))
+    >>> without(s, 4)  # There is no index 4, so all of s is retained.
+    Link(3, Link(5, Link(7, Link(9))))
     """
+    "*** YOUR CODE HERE ***"
+    print(s)
+    if s.rest is Link.empty:
+        return s
+    if i == 0:
+        return s.rest
+    else:
+        rest_link = without(s.rest,i - 1)
+        return Link(s.first,rest_link)
+class Link:
     empty = ()
 
     def __init__(self, first, rest=empty):
