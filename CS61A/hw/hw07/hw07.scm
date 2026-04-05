@@ -1,7 +1,6 @@
 (define (square n) (* n n))
 
 (define (pow base exp) 
-  (cond ((= exp 1) base)
         ((odd? exp) (* base (pow base (- exp 1))))
         ((even? exp) (pow (square base) (/ exp 2)))
   )

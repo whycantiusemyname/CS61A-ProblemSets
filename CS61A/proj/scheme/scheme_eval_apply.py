@@ -34,6 +34,11 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     else:
         # BEGIN PROBLEM 3
         "*** YOUR CODE HERE ***"
+        operator = scheme_eval(expr.first,env)
+        def operand_eval(expr):
+            return scheme_eval(expr,env)
+        operand = expr.rest.map(operand_eval)
+        return scheme_apply(operator,operand,env)
         # END PROBLEM 3
 
 def scheme_apply(procedure, args, env):
@@ -45,20 +50,31 @@ def scheme_apply(procedure, args, env):
     if isinstance(procedure, BuiltinProcedure):
         # BEGIN PROBLEM 2
         "*** YOUR CODE HERE ***"
+        args_list = []
+        while args is not nil:
+            args_list.append(args.first) # 把当前的第一个参数直接存进去
+            args = args.rest 
+        if procedure.need_env:
+            args_list.append(env)            
         # END PROBLEM 2
         try:
             # BEGIN PROBLEM 2
             "*** YOUR CODE HERE ***"
+            return procedure.py_func(*args_list)
             # END PROBLEM 2
         except TypeError as err:
             raise SchemeError('incorrect number of arguments: {0}'.format(procedure))
     elif isinstance(procedure, LambdaProcedure):
         # BEGIN PROBLEM 9
         "*** YOUR CODE HERE ***"
+        lambda_frame = procedure.env.make_child_frame(procedure.formals,args)
+        return eval_all(procedure.body,lambda_frame)
         # END PROBLEM 9
     elif isinstance(procedure, MuProcedure):
         # BEGIN PROBLEM 11
         "*** YOUR CODE HERE ***"
+        dynamic_frame = env.make_child_frame(procedure.formals,args)
+        return eval_all(procedure.body,dynamic_frame)
         # END PROBLEM 11
     else:
         assert False, "Unexpected procedure: {}".format(procedure)
@@ -79,7 +95,17 @@ def eval_all(expressions, env):
     2
     """
     # BEGIN PROBLEM 6
-    return scheme_eval(expressions.first, env) # replace this with lines of your own code
+    ##if isinstance(expressions,Pair):
+    #####    elif expressions.rest is nil:
+    ##        return scheme_eval(expressions.rest,env)
+    ##    scheme_eval(expressions.first,env)
+     ##   eval_all(expressions.rest,env)
+    if expressions is nil:
+        return None
+    while isinstance(expressions,Pair) and expressions.rest is not nil:
+        scheme_eval(expressions.first,env)
+        expressions = expressions.rest
+    return scheme_eval(expressions.first,env)
     # END PROBLEM 6
 
 

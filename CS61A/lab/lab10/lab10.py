@@ -14,20 +14,25 @@ def calc_eval(exp):
     3
     """
     if isinstance(exp, Pair):
-        operator = ____________ # UPDATE THIS FOR Q2
-        operands = ____________ # UPDATE THIS FOR Q2
-        if operator == 'and': # and expressions
-            return eval_and(operands)
-        elif operator == 'define': # define expressions
-            return eval_define(operands)
-        else: # Call expressions
-            return calc_apply(___________, ___________) # UPDATE THIS FOR Q2
+        first = exp.first 
+        
+        # 2. 用这个原始的名字去跟老师写的 'and' 和 'define' 做比较
+        if first == 'and': # 这里的比较对象是字符串，没问题了
+            return eval_and(exp.rest)
+        elif first == 'define':
+            return eval_define(exp.rest)
+        # 3. 如果不是特殊指令，那它就是一个普通函数调用
+        # 这时候我们才对它求值（这就是 Q2 的要求），拿到真正的函数
+        else:
+            operator = calc_eval(first) # 比如这里会把 "d" 变成 floor_div
+            operands = exp.rest
+            return calc_apply(operator, operands)
     elif exp in OPERATORS:   # Looking up procedures
         return OPERATORS[exp]
     elif isinstance(exp, int) or isinstance(exp, bool):   # Numbers and booleans
         return exp
-    elif _________________: # CHANGE THIS CONDITION FOR Q4
-        return _________________ # UPDATE THIS FOR Q4
+    elif exp in bindings: # CHANGE THIS CONDITION FOR Q4
+        return bindings[exp] # UPDATE THIS FOR Q4
 
 def calc_apply(op, args):
     return op(args)
@@ -52,6 +57,14 @@ def floor_div(args):
     20
     """
     "*** YOUR CODE HERE ***"
+    args = args.map(calc_eval)
+    if isinstance(args.rest,Pair):
+        return floor_div(Pair((args.first // args.rest.first),args.rest.rest))
+    else:
+        return args.first
+
+
+
 
 scheme_t = True   # Scheme's #t
 scheme_f = False  # Scheme's #f
@@ -74,27 +87,35 @@ def eval_and(expressions):
     True
     """
     "*** YOUR CODE HERE ***"
+    if expressions is nil:
+        return True
+    elif expressions.rest is nil:
+        return calc_eval(expressions.first)
+    if calc_eval(expressions.first) is scheme_f:
+        return False
+    return eval_and(expressions.rest)
+
 
 bindings = {}
 
 def eval_define(expressions):
     """
-    >>> eval_define(Pair("a", Pair(1, nil)))
-    'a'
-    >>> eval_define(Pair("b", Pair(3, nil)))
-    'b'
-    >>> eval_define(Pair("c", Pair("a", nil)))
-    'c'
-    >>> calc_eval("c")
-    1
     >>> calc_eval(Pair("define", Pair("d", Pair("//", nil))))
     'd'
     >>> calc_eval(Pair("d", Pair(4, Pair(2, nil))))
     2
     """
     "*** YOUR CODE HERE ***"
+    if expressions is nil:
+        raise TypeError
+    elif expressions.rest.rest is nil:
+        bindings[expressions.first] = calc_eval(expressions.rest.first)
+    else:
+        bindings[expressions.first] = calc_eval(expressions.rest)
+    return expressions.first
 
-OPERATORS = { "//": floor_div, "+": addition, "-": subtraction, "*": multiplication, "/": division }
+
+OPERATORS = { "//": floor_div, "+": addition, "-": subtraction, "*": multiplication, "/": division ,"and":eval_and,"define":eval_define}
 
 class Pair:
     """A pair has two instance attributes: first and rest. rest must be a Pair or nil
